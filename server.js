@@ -53,12 +53,16 @@ app.post('/api/shorturl/new', (req, res) => {
           console.log(counter);
           let url = {url: req.body.url, urlID: counter.seq};
           Url.create(url, (err, data) => {
-            console.log(err);
-            console.log(data);
-          });
-          res.json({
-            "original_url": req.body.url,
-            "short_url": counter.seq
+            if (err) {
+              res.json({
+                "error": "invalid URL"
+              });
+            } else {
+              res.json({
+                "original_url": req.body.url,
+                "short_url": counter.seq
+              });
+            }
           });
         }
       });
@@ -66,7 +70,18 @@ app.post('/api/shorturl/new', (req, res) => {
   });
 });
 
-console.log(process.env.MLAB_URI);
+app.get('/api/shorturl/:new?', (req, res) => {
+  let shortenedUrl = req.params.new;
+  Url.findOne({urlID: shortenedUrl}, (err, url) => {
+    if (err) {
+      res.json({
+        "error": "invalid URL"
+      });
+    } else {
+      res.redirect(url.url);
+    }
+  });
+});
 
 app.listen(port, () => {
   console.log("Listening on port " + port);
